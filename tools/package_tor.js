@@ -38,10 +38,13 @@ if (isDarwin) {
 
 // Windows adds " " to the file, in mac/linux " " preserves the spaces between
 // sha and file path
-cmds.push('curl -o ' + path.join(torPath, 'tor') + ' ' + torURL)
 if (isWindows) {
-  cmds.push('echo ' + sha512Tor + '  ' + path.join(torPath, 'tor') + '> tor.hash')
+  cmds.push('curl -o ' + path.join(torPath, 'tor.zip') + ' ' + torURL)
+  cmds.push('echo ' + sha512Tor + '  ' + path.join(torPath, 'tor.zip') + '> tor.hash')
+  cmds.push('powershell.exe -NoP -NonI -Command "Expand-Archive .\\'
+    + path.join(torPath, 'tor.zip') + ' .\\'+ path.join(torPath, 'tor.zip') +'\'"')
 } else {
+  cmds.push('curl -o ' + path.join(torPath, 'tor') + ' ' + torURL)
   cmds.push('echo "' + sha512Tor + '  ' + path.join(torPath, 'tor') + '" > tor.hash')
 }
 
