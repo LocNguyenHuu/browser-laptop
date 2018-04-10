@@ -1,6 +1,7 @@
 var execute = require('./lib/execute')
 const path = require('path')
 const fs = require('fs')
+const unzip = require('unzip')
 
 var cmds = []
 
@@ -38,10 +39,11 @@ if (isDarwin) {
 
 // Windows adds " " to the file, in mac/linux " " preserves the spaces between
 // sha and file path
-cmds.push('curl -o ' + path.join(torPath, 'tor') + ' ' + torURL)
 if (isWindows) {
-  cmds.push('echo ' + sha512Tor + '  ' + path.join(torPath, 'tor') + '> tor.hash')
+  cmds.push('curl -o ' + path.join(torPath, 'tor.zip') + ' ' + torURL)
+  cmds.push('echo ' + sha512Tor + '  ' + path.join(torPath, 'tor.zip') + '> tor.hash')
 } else {
+  cmds.push('curl -o ' + path.join(torPath, 'tor') + ' ' + torURL)
   cmds.push('echo "' + sha512Tor + '  ' + path.join(torPath, 'tor') + '" > tor.hash')
 }
 
@@ -51,12 +53,17 @@ if (isDarwin) {
   cmds.push('sha512sum -c tor.hash')
 }
 
-cmds.push('chmod +x ' + path.join(torPath, 'tor'))
+if (!isWindows) {
+  cmds.push('chmod +x ' + path.join(torPath, 'tor'))
+}
 cmds.push('rm -f tor.hash')
 execute(cmds, '', (err) => {
   if (err) {
     console.error('package tor failed', err)
     process.exit(1)
+  }
+  if (isWindows) {
+    fs.createReadStream(path.join(torPath, 'tor.zip')).pipe(unzip.Extract({ path: torPath }))
   }
   console.log('done')
 })
